@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blockchain Node Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0f;
+            color: #e4e4e7;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 80%, rgba(64, 224, 208, 0.05) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(138, 43, 226, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .header {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #111118 0%, #1a1a28 100%);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            text-align: center;
+            margin-bottom: 20px;
+            border: 1px solid rgba(64, 224, 208, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #40e0d0, transparent);
+            animation: scan 3s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .header h1 {
+            color: #40e0d0;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(64, 224, 208, 0.5);
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+
+        .node-info {
+            font-size: 1.1rem;
+            color: #8a2be2;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+
+        .panel {
+            background: linear-gradient(135deg, #111118 0%, #1a1a28 100%);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(64, 224, 208, 0.15);
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(64, 224, 208, 0.5), transparent);
+        }
+
+        .panel h2 {
+            color: #40e0d0;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        .panel h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 2px;
+            background: linear-gradient(90deg, #40e0d0, #8a2be2);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #1a1a28 0%, #2a2a3a 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(64, 224, 208, 0.2);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(64, 224, 208, 0.1);
+            border-color: rgba(64, 224, 208, 0.4);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(64, 224, 208, 0.8), transparent);
+        }
+
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 300;
+            color: #40e0d0;
+            text-shadow: 0 0 10px rgba(64, 224, 208, 0.3);
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #8a8a9a;
+            margin-top: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #8a2be2;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid rgba(64, 224, 208, 0.2);
+            border-radius: 8px;
+            background: linear-gradient(135deg, #1a1a28 0%, #2a2a3a 100%);
+            color: #e4e4e7;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #40e0d0;
+            box-shadow: 0 0 0 2px rgba(64, 224, 208, 0.2),
+                        0 0 20px rgba(64, 224, 208, 0.1);
+            background: linear-gradient(135deg, #2a2a3a 0%, #1a1a28 100%);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #40e0d0 0%, #20b2aa 100%);
+            color: #0a0a0f;
+            border: none;
+            padding: 15px 28px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(64, 224, 208, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #8a2be2 0%, #6a1b9a 100%);
+            color: #ffffff;
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 8px 25px rgba(138, 43, 226, 0.4);
+        }
+
+        .blockchain-viewer {
+            grid-column: 1 / -1;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .blockchain-viewer::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .blockchain-viewer::-webkit-scrollbar-track {
+            background: rgba(64, 224, 208, 0.1);
+            border-radius: 4px;
+        }
+
+        .blockchain-viewer::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #40e0d0, #8a2be2);
+            border-radius: 4px;
+        }
+
+        .block {
+            background: linear-gradient(135deg, #1a1a28 0%, #2a2a3a 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #40e0d0;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .block:hover {
+            transform: translateX(5px);
+            box-shadow: 0 8px 32px rgba(64, 224, 208, 0.1);
+        }
+
+        .block::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(64, 224, 208, 0.5), transparent);
+        }
+
+        .block-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .block-index {
+            font-size: 1.3rem;
+            font-weight: 300;
+            color: #40e0d0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .block-hash {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            color: #8a8a9a;
+            word-break: break-all;
+            margin-bottom: 5px;
+            padding: 5px 10px;
+            background: rgba(64, 224, 208, 0.05);
+            border-radius: 4px;
+            border-left: 2px solid rgba(64, 224, 208, 0.3);
+        }
+
+        .transactions {
+            margin-top: 15px;
+        }
+
+        .transaction {
+            background: linear-gradient(135deg, #2a2a3a 0%, #3a3a4a 100%);
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            border: 1px solid rgba(64, 224, 208, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .transaction::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: linear-gradient(135deg, #40e0d0, #8a2be2);
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
+        .message.success {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.2) 0%, rgba(76, 175, 80, 0.1) 100%);
+            border: 1px solid rgba(76, 175, 80, 0.4);
+            color: #4CAF50;
+        }
+
+        .message.error {
+            background: linear-gradient(135deg, rgba(244, 67, 54, 0.2) 0%, rgba(244, 67, 54, 0.1) 100%);
+            border: 1px solid rgba(244, 67, 54, 0.4);
+            color: #F44336;
+        }
+
+        .loading {
+            display: none;
+            color: #8a2be2;
+            font-style: italic;
+            text-align: center;
+            padding: 20px;
+            font-size: 1.1rem;
+            position: relative;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #8a2be2, transparent);
+            animation: loading 2s linear infinite;
+        }
+
+        @keyframes loading {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Cyberpunk glitch effect for headings */
+        @keyframes glitch {
+            0%, 100% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+        }
+
+        .header h1:hover {
+            animation: glitch 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Blockchain Node Dashboard</h1>
+            <div class="node-info">
+                Node ID: {{ node_id }} | Port: {{ port }}
+            </div>
+        </div>
+
+        <!-- Statistics Panel -->
+        <div class="panel">
+            <h2>Node Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="chainLength">0</div>
+                    <div class="stat-label">Chain Length</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="pendingTx">0</div>
+                    <div class="stat-label">Pending Transactions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="connectedNodes">0</div>
+                    <div class="stat-label">Connected Nodes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="difficulty">4</div>
+                    <div class="stat-label">Mining Difficulty</div>
+                </div>
+            </div>
+            <button class="btn btn-secondary" onclick="refreshStats()">Refresh Stats</button>
+        </div>
+
+        <!-- Transaction Panel -->
+        <div class="panel">
+            <h2>New Transaction</h2>
+            <div id="txMessage" class="message"></div>
+            <form id="transactionForm">
+                <div class="form-group">
+                    <label for="sender">Sender</label>
+                    <input type="text" id="sender" required>
+                </div>
+                <div class="form-group">
+                    <label for="recipient">Recipient</label>
+                    <input type="text" id="recipient" required>
+                </div>
+                <div class="form-group">
+                    <label for="amount">Amount</label>
+                    <input type="number" id="amount" step="0.01" required>
+                </div>
+                <button type="submit" class="btn">Add Transaction</button>
+            </form>
+        </div>
+
+        <!-- Mining Panel -->
+        <div class="panel">
+            <h2>Mining</h2>
+            <div id="miningMessage" class="message"></div>
+            <div id="miningLoading" class="loading">Mining in progress...</div>
+            <button class="btn" onclick="mineBlock()">Mine Block</button>
+            <button class="btn btn-secondary" onclick="viewPending()">View Pending</button>
+            <div id="pendingList"></div>
+        </div>
+
+        <!-- Node Management Panel -->
+        <div class="panel">
+            <h2>Node Management</h2>
+            <div id="nodeMessage" class="message"></div>
+            <div class="form-group">
+                <label for="peerAddress">Peer Node Address</label>
+                <input type="text" id="peerAddress" placeholder="localhost:5001">
+            </div>
+            <button class="btn" onclick="registerNode()">Register Node</button>
+            <button class="btn btn-secondary" onclick="viewNodes()">View Nodes</button>
+            <button class="btn" onclick="syncChain()">Sync Chain</button>
+            <div id="nodesList"></div>
+        </div>
+
+        <!-- Blockchain Viewer -->
+        <div class="panel blockchain-viewer">
+            <h2>Blockchain Viewer</h2>
+            <button class="btn btn-secondary" onclick="refreshChain()">Refresh Chain</button>
+            <div id="blockchainContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshStats();
+            refreshChain();
+        });
+
+        // Show message helper
+        function showMessage(elementId, message, type) {
+            const messageEl = document.getElementById(elementId);
+            messageEl.textContent = message;
+            messageEl.className = `message ${type}`;
+            messageEl.style.display = 'block';
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, 5000);
+        }
+
+        // Refresh statistics
+        async function refreshStats() {
+            try {
+                const response = await fetch('/stats');
+                const data = await response.json();
+                
+                document.getElementById('chainLength').textContent = data.chain_length;
+                document.getElementById('pendingTx').textContent = data.pending_transactions;
+                document.getElementById('connectedNodes').textContent = data.connected_nodes;
+                document.getElementById('difficulty').textContent = data.mining_difficulty;
+            } catch (error) {
+                console.error('Error refreshing stats:', error);
+            }
+        }
+
+        // Handle transaction form
+        document.getElementById('transactionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                sender: document.getElementById('sender').value,
+                recipient: document.getElementById('recipient').value,
+                amount: parseFloat(document.getElementById('amount').value)
+            };
+
+            try {
+                const response = await fetch('/transactions/new', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage('txMessage', data.message, 'success');
+                    document.getElementById('transactionForm').reset();
+                    refreshStats();
+                } else {
+                    showMessage('txMessage', data.message, 'error');
+                }
+            } catch (error) {
+                showMessage('txMessage', 'Network error: ' + error.message, 'error');
+            }
+        });
+
+        // Mine block
+        async function mineBlock() {
+            document.getElementById('miningLoading').style.display = 'block';
+            
+            try {
+                const response = await fetch('/mine');
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage('miningMessage', data.message, 'success');
+                    refreshStats();
+                    refreshChain();
+                } else {
+                    showMessage('miningMessage', data.message, 'error');
+                }
+            } catch (error) {
+                showMessage('miningMessage', 'Mining error: ' + error.message, 'error');
+            } finally {
+                document.getElementById('miningLoading').style.display = 'none';
+            }
+        }
+
+        // View pending transactions
+        async function viewPending() {
+            try {
+                const response = await fetch('/pending');
+                const data = await response.json();
+                
+                const pendingList = document.getElementById('pendingList');
+                if (data.transactions.length === 0) {
+                    pendingList.innerHTML = '<p>No pending transactions</p>';
+                } else {
+                    pendingList.innerHTML = data.transactions.map(tx => 
+                        `<div class="transaction">
+                            ${tx.sender || 'SYSTEM'} → ${tx.recipient}: ${tx.amount}
+                        </div>`
+                    ).join('');
+                }
+            } catch (error) {
+                console.error('Error viewing pending:', error);
+            }
+        }
+
+        // Register node
+        async function registerNode() {
+            const address = document.getElementById('peerAddress').value;
+            if (!address) {
+                showMessage('nodeMessage', 'Please enter a peer address', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/nodes/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ nodes: [address] })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage('nodeMessage', data.message, 'success');
+                    document.getElementById('peerAddress').value = '';
+                    refreshStats();
+                } else {
+                    showMessage('nodeMessage', data.message, 'error');
+                }
+            } catch (error) {
+                showMessage('nodeMessage', 'Registration error: ' + error.message, 'error');
+            }
+        }
+
+        // View nodes
+        async function viewNodes() {
+            try {
+                const response = await fetch('/nodes');
+                const data = await response.json();
+                
+                const nodesList = document.getElementById('nodesList');
+                if (data.nodes.length === 0) {
+                    nodesList.innerHTML = '<p>No registered nodes</p>';
+                } else {
+                    nodesList.innerHTML = '<h3>Registered Nodes:</h3>' + 
+                        data.nodes.map(node => `<div class="transaction">${node}</div>`).join('');
+                }
+            } catch (error) {
+                console.error('Error viewing nodes:', error);
+            }
+        }
+
+        // Sync chain
+        async function syncChain() {
+            try {
+                const response = await fetch('/nodes/resolve');
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage('nodeMessage', data.message, 'success');
+                    refreshStats();
+                    refreshChain();
+                } else {
+                    showMessage('nodeMessage', data.message, 'error');
+                }
+            } catch (error) {
+                showMessage('nodeMessage', 'Sync error: ' + error.message, 'error');
+            }
+        }
+
+        // Refresh blockchain view
+        async function refreshChain() {
+            try {
+                const response = await fetch('/chain');
+                const data = await response.json();
+                
+                const container = document.getElementById('blockchainContainer');
+                container.innerHTML = '';
+                
+                if (data.chain.length === 0) {
+                    container.innerHTML = '<p>No blocks in chain</p>';
+                    return;
+                }
+
+                data.chain.forEach(block => {
+                    const blockEl = document.createElement('div');
+                    blockEl.className = 'block';
+                    
+                    const timestamp = new Date(block.timestamp * 1000).toLocaleString();
+                    
+                    blockEl.innerHTML = `
+                        <div class="block-header">
+                            <span class="block-index">Block #${block.index}</span>
+                            <span style="font-size: 0.8rem; color: #8a8a9a;">${timestamp}</span>
+                        </div>
+                        <div class="block-hash">Hash: ${block.hash}</div>
+                        <div class="block-hash">Previous: ${block.previous_hash}</div>
+                        <div class="block-hash">Nonce: ${block.nonce}</div>
+                        <div class="transactions">
+                            <strong>Transactions (${block.transactions.length}):</strong>
+                            ${block.transactions.map(tx => 
+                                `<div class="transaction">
+                                    ${tx.sender || 'SYSTEM'} → ${tx.recipient}: ${tx.amount}
+                                </div>`
+                            ).join('')}
+                        </div>
+                    `;
+                    
+                    container.appendChild(blockEl);
+                });
+            } catch (error) {
+                console.error('Error refreshing chain:', error);
+            }
+        }
+    </script>
+</body>
+</html>
